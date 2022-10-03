@@ -1,0 +1,87 @@
+---
+title: "p8105_hw2_zs2539"
+author: "Zhengwei Song"
+date: "`r Sys.Date()`"
+output: github_document
+chunk_output_type: console
+---
+
+# Problem 1 Solution
+
+## Importing data tables
+```{r}
+library(tidyverse)
+NYC_transit_data_raw = read_csv(file = "./data/NYC_Transit_Subway_Entrance_And_Exit_Data.csv",
+            col_types = cols(
+    Route8 = col_character(),
+    Route9 = col_character(),
+    Route10 = col_character(),
+    Route11 = col_character()
+        ))
+```
+
+## Cleaning up variable names
+```{r}
+names(NYC_transit_data_raw)
+NYC_transit_data_clean_names = janitor::clean_names(NYC_transit_data_raw)
+names(NYC_transit_data_clean_names)
+```
+
+## Selecting required columns in problem 1
+```{r}
+library(dplyr)
+NYC_transit_data_selected_cols = select(NYC_transit_data_clean_names, line, station_name, station_latitude, station_longitude, route1:route11, entry, vending, entrance_type, ada)
+```
+
+## Combining routes columns
+```{r}
+NYC_transit_data_combined_cols = 
+  pivot_longer(
+    NYC_transit_data_selected_cols, 
+    route1:route11,
+    names_to = NULL,
+    values_to = "route_number",
+    values_drop_na = TRUE)
+```
+
+## Converting to Logical variables for entry and vending
+```{r}
+NYC_transit_data_logical_cols = mutate(NYC_transit_data_combined_cols,
+    entry = recode(entry, "YES" = "TRUE", "NO" = "FALSE"),
+    entry = as.logical(entry),
+    vending = recode(vending, "YES" = "TRUE", "NO" = "FALSE"),
+    vending = as.logical(vending),
+    )
+```
+
+## Selecting distinct rows of the dataset
+```{r}
+NYC_transit_data_final = NYC_transit_data_logical_cols %>% distinct()
+```
+
+## In summary, this has read and cleaned the data as required, and the whole process is shown above. The resulting dataset is 1559 rows x 9 columns, including line, station name, station latitude / longitude, routes served, entry, vending, entrance type and ADA compliance.
+```{r}
+tail(NYC_transit_data_final)
+```
+
+## Answering Questions in problem 1
+
+### It has 356 distinct stations in total by the coding below
+```{r}
+NYC_transit_data_final %>% distinct(station_name) %>% count()
+```
+
+### Similarly, 73 stations are ADA compliant
+```{r}
+NYC_transit_data_final %>% filter(ada == "TRUE") %>% distinct(station_name) %>% count()
+```
+
+### 60.38% station entrances / exits without vending allow entrance
+
+```{r}
+a = NYC_transit_data_final %>% filter(vending == "FALSE", entry == "FALSE") %>% select(station_name, entry) %>% distinct() %>% count()
+
+b = NYC_transit_data_final %>% filter(vending == "FALSE") %>% select(station_name, entry) %>% distinct() %>% count()
+
+a/b
+```
