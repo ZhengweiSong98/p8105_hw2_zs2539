@@ -69,31 +69,30 @@ tail(NYC_transit_data_final)
 
 ## Answering Questions in problem 1
 
-### It has 356 distinct stations in total by the coding below
+### It has 465 distinct stations in total by the coding below
 ```{r}
-NYC_transit_data_final %>% distinct(station_name) %>% count()
+NYC_transit_data_final %>% distinct(line, station_name) %>% count()
 ```
 
-### Similarly, 73 stations are ADA compliant
+### Similarly, 84 stations are ADA compliant
 ```{r}
-NYC_transit_data_final %>% filter(ada == TRUE) %>% distinct(station_name) %>% count()
+NYC_transit_data_final %>% filter(ada == TRUE) %>% distinct(line, station_name) %>% count()
 ```
 
-### 60.38% station entrances / exits without vending allow entrance
+### 32.13% station entrances / exits without vending allow entrance
 
 ```{r}
-a = NYC_transit_data_final %>% filter(vending == "FALSE", entry == "FALSE") %>% select(station_name, entry) %>% distinct() %>% count()
-
-b = NYC_transit_data_final %>% filter(vending == "FALSE") %>% select(station_name, entry) %>% distinct() %>% count()
-
-a/b
+NYC_transit_data_final %>% 
+  filter(vending == FALSE) %>% 
+  pull(entry) %>% 
+  mean
 ```
 
-### 56 stations serve A train, and 16 of them are ADA compliant
+### 60 stations serve A train, and 17 of them are ADA compliant
 ```{r}
-NYC_transit_data_final %>% select(station_name, route_number) %>% filter(route_number == "A") %>% distinct(station_name) %>% count()
+NYC_transit_data_final %>% select(line, station_name, route_number) %>% filter(route_number == "A") %>% distinct(line, station_name) %>% count()
 
-NYC_transit_data_final %>% select(station_name, route_number, ada) %>% filter(route_number == "A", ada == "TRUE") %>% distinct(station_name) %>% count()
+NYC_transit_data_final %>% select(line, station_name, route_number, ada) %>% filter(route_number == "A", ada == "TRUE") %>% distinct(line, station_name) %>% count()
 ```
 
 # Problem 2 Solution
