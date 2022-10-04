@@ -8,7 +8,7 @@ chunk_output_type: console
 
 # Problem 1 Solution
 
-## Importing data tables
+### Importing data tables
 ```{r}
 library(tidyverse)
 NYC_transit_data_raw = read_csv(file = "./data/NYC_Transit_Subway_Entrance_And_Exit_Data.csv",
@@ -20,20 +20,20 @@ NYC_transit_data_raw = read_csv(file = "./data/NYC_Transit_Subway_Entrance_And_E
         ))
 ```
 
-## Cleaning up variable names
+### Cleaning up variable names
 ```{r}
 names(NYC_transit_data_raw)
 NYC_transit_data_clean_names = janitor::clean_names(NYC_transit_data_raw)
 names(NYC_transit_data_clean_names)
 ```
 
-## Selecting required columns in problem 1
+### Selecting required columns in problem 1
 ```{r}
 library(dplyr)
 NYC_transit_data_selected_cols = select(NYC_transit_data_clean_names, line, station_name, station_latitude, station_longitude, route1:route11, entry, vending, entrance_type, ada)
 ```
 
-## Combining routes columns
+### Combining routes columns
 ```{r}
 NYC_transit_data_combined_cols = 
   pivot_longer(
@@ -44,7 +44,7 @@ NYC_transit_data_combined_cols =
     values_drop_na = TRUE)
 ```
 
-## Converting to Logical variables for entry and vending
+### Converting to Logical variables for entry and vending
 ```{r}
 NYC_transit_data_logical_cols = mutate(NYC_transit_data_combined_cols,
     entry = recode(entry, "YES" = "TRUE", "NO" = "FALSE"),
@@ -54,12 +54,15 @@ NYC_transit_data_logical_cols = mutate(NYC_transit_data_combined_cols,
     )
 ```
 
-## Selecting distinct rows of the dataset
+### Selecting distinct rows of the dataset
 ```{r}
 NYC_transit_data_final = NYC_transit_data_logical_cols %>% distinct()
 ```
 
-## In summary, this has read and cleaned the data as required, and the whole process is shown above. The resulting dataset is 1559 rows x 9 columns, including line, station name, station latitude / longitude, routes served, entry, vending, entrance type and ADA compliance.
+### Summary
+
+This has read and cleaned the data as required, and the whole process is shown above. The resulting dataset is 1559 rows x 9 columns, including line, station name, station latitude / longitude, routes served, entry, vending, entrance type and ADA compliance.
+
 ```{r}
 tail(NYC_transit_data_final)
 ```
@@ -85,3 +88,112 @@ b = NYC_transit_data_final %>% filter(vending == "FALSE") %>% select(station_nam
 
 a/b
 ```
+
+### 56 stations serve A train, and 16 of them are ADA compliant
+```{r}
+NYC_transit_data_final %>% select(station_name, route_number) %>% filter(route_number == "A") %>% distinct(station_name) %>% count()
+
+NYC_transit_data_final %>% select(station_name, route_number, ada) %>% filter(route_number == "A", ada == "TRUE") %>% distinct(station_name) %>% count()
+```
+
+# Problem 2 Solution
+
+### Importing data table Mr. Trash Wheel
+```{r}
+library(readxl)
+Trash_wheel_mr = read_excel("./data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx", sheet = 'Mr. Trash Wheel', range = 'A2:N534') %>% janitor::clean_names() %>% 
+  filter(!is.na(dumpster)) %>% 
+  mutate(sports_balls = as.integer(sports_balls))
+```
+
+### Importing data table Professor Trash Wheel
+```{r}
+Trash_wheel_prof = read_excel("./data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx", sheet = 'Professor Trash Wheel', range = 'A2:N116') %>% janitor::clean_names() %>% 
+  filter(!is.na(dumpster)) %>% 
+  mutate(sports_balls = as.integer(sports_balls))
+```
+
+### Combining
+```{r}
+Trash_wheel_comb = bind_rows(Trash_wheel_mr, Trash_wheel_prof, .id = "trash_wheel")
+```
+
+### Summary
+```{r}
+a = Trash_wheel_comb %>% count()
+b = Trash_wheel_comb %>% filter(trash_wheel == "1") %>% count()
+c = a-b
+
+d = ncol(Trash_wheel_comb)
+
+e = sum(Trash_wheel_comb$weight_tons)
+f = Trash_wheel_comb %>% filter(trash_wheel == "1") %>% summarize(sum(weight_tons))
+j = e-f
+
+h = sum(Trash_wheel_comb$cigarette_butts) 
+g = as.integer(h/nrow(Trash_wheel_comb))
+
+i = Trash_wheel_comb %>% filter(trash_wheel == "1", year == "2020") %>% summarize(sum(sports_balls))
+```
+The Mr. Trash Wheel and the Professional Trash Wheel are two trash wheels used to clear trash and debris from the Inner Harbor of Baltimore, Maryland. These two datasets describe the amount and type of garbage collected by bins and dates. The dataset includes `r a` observations, including `r c` for the Mr. Trash Wheel and `r b` for the Professional Trash Wheel, with each observation representing a collected bin. The `r d` column variables include the weight, volume, and type of waste, as well as estimates of households using incineration to generate electricity such as `weight_tons`, `volume_cubic_yards`, `plastic_bottles`, `cigarette_butts` et al. From May 2014 to January 2021, the two Trash Wheels collected a total of `r e` tons of garbage, of which Mr. Trash Wheel dominated with `r f` tons, and Professor Trash Wheel shared `r j` tons. In detail, in 2020, Mr. Trash Wheel collected `r i` sport balls. Also, cigarette butt was a common pollution item in the port. Each bin collected `r g` cigarette butts on average, and a total of `r as.character(h)` cigarette butts were collected during the period.
+
+# Problem 3 Solution
+
+### Importing and cleaning pols-month dataset
+```{r}
+pols_month = read_csv(file = "./data/fivethirtyeight_datasets/pols-month.csv") %>%
+    janitor::clean_names() %>% 
+    separate(col = mon, into = c("year", "month", "day")) %>% 
+    mutate(year = as.integer(year), month = as.integer(month), day = as.integer(day), month = month.name[month], president = recode(prez_dem, `1` = "dem", `0` = "gop")) %>% 
+    select(-prez_gop, -prez_dem, -day)
+```
+
+### Importing and cleaning snp dataset
+```{r}
+snp_data = read_csv(file = "./data/fivethirtyeight_datasets/snp.csv") %>%
+    janitor::clean_names() %>%
+    separate(col = date, into = c("year", "month", "day")) %>% 
+    mutate(year = as.integer(year), month = as.integer(month), day = as.integer(day), month = month.name[month]) %>% 
+    select(-day)
+```
+
+### Importing and cleaning unemployment dataset
+```{r}
+unemployment_data = read_csv(file = "./data/fivethirtyeight_datasets/unemployment.csv") %>%
+    janitor::clean_names() %>% 
+    pivot_longer(
+    jan:dec, names_to = "month", values_to = "percentage") %>% 
+    mutate(month = recode(month, "jan" = "January", 
+                   "feb" = "February", 
+                   "mar" = "March", 
+                   "apr" = "April", 
+                   "may" = "May", 
+                   "jun" = "June", 
+                   "jul" = "July", 
+                   "aug" = "August", 
+                   "sep" = "September", 
+                   "oct" = "October", 
+                   "nov" = "November", 
+                   "dec" = "December")) %>%
+    select(everything())
+```
+
+
+### Merging by `left_join`
+```{r}
+pols_snp_merge = 
+  left_join(pols_month, snp_data, by = c("year","month"))
+
+merge_final = 
+  left_join(pols_snp_merge, unemployment_data, by = c("year","month"))
+```
+
+### Summary
+
+`pols_month` contains 9 variables and 822 observations, describing the respective numbers of presidents, governors, senators, and party representatives in Republicans and Democrats in certain date from January 1947 to January 2015.
+
+`snp_data` contains 3 variables and 787 observations, describing the closing values of the S&P stock index on the associated date from January 1950 to July 2015.
+
+`unemployment_data` contains 3 variables and 816 observations, describing the percentage of unemployment in months of the associated year from January 1948 to December 2015.
+
+The final dataset `merge_final` is a merge of the above three datasets by year and month containing 11 variables and 822 observations. This will allow further comparison of presidential party power with socioeconomic outcomes such as unemployment and stocks.
