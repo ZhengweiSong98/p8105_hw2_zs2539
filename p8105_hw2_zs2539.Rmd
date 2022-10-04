@@ -76,7 +76,7 @@ NYC_transit_data_final %>% distinct(station_name) %>% count()
 
 ### Similarly, 73 stations are ADA compliant
 ```{r}
-NYC_transit_data_final %>% filter(ada == "TRUE") %>% distinct(station_name) %>% count()
+NYC_transit_data_final %>% filter(ada == TRUE) %>% distinct(station_name) %>% count()
 ```
 
 ### 60.38% station entrances / exits without vending allow entrance
@@ -101,16 +101,16 @@ NYC_transit_data_final %>% select(station_name, route_number, ada) %>% filter(ro
 ### Importing data table Mr. Trash Wheel
 ```{r}
 library(readxl)
-Trash_wheel_mr = read_excel("./data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx", sheet = 'Mr. Trash Wheel', range = 'A2:N534') %>% janitor::clean_names() %>% 
+Trash_wheel_mr = read_excel("./data/Trash Wheel Collection Data.xlsx", sheet = 'Mr. Trash Wheel', range = 'A2:N549') %>% janitor::clean_names() %>% 
   filter(!is.na(dumpster)) %>% 
-  mutate(sports_balls = as.integer(sports_balls))
+  mutate(sports_balls = as.integer(sports_balls), year = as.integer(year))
 ```
 
 ### Importing data table Professor Trash Wheel
 ```{r}
-Trash_wheel_prof = read_excel("./data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx", sheet = 'Professor Trash Wheel', range = 'A2:N116') %>% janitor::clean_names() %>% 
-  filter(!is.na(dumpster)) %>% 
-  mutate(sports_balls = as.integer(sports_balls))
+Trash_wheel_prof = read_excel("./data/Trash Wheel Collection Data.xlsx", sheet = 'Professor Trash Wheel', range = 'A2:M96') %>% janitor::clean_names() %>% 
+  filter(!is.na(dumpster)) %>%
+    mutate(year = as.integer(year))
 ```
 
 ### Combining
@@ -135,7 +135,7 @@ g = as.integer(h/nrow(Trash_wheel_comb))
 
 i = Trash_wheel_comb %>% filter(trash_wheel == "1", year == "2020") %>% summarize(sum(sports_balls))
 ```
-The Mr. Trash Wheel and the Professional Trash Wheel are two trash wheels used to clear trash and debris from the Inner Harbor of Baltimore, Maryland. These two datasets describe the amount and type of garbage collected by bins and dates. The dataset includes `r a` observations, including `r c` for the Mr. Trash Wheel and `r b` for the Professional Trash Wheel, with each observation representing a collected bin. The `r d` column variables include the weight, volume, and type of waste, as well as estimates of households using incineration to generate electricity such as `weight_tons`, `volume_cubic_yards`, `plastic_bottles`, `cigarette_butts` et al. From May 2014 to January 2021, the two Trash Wheels collected a total of `r e` tons of garbage, of which Mr. Trash Wheel dominated with `r f` tons, and Professor Trash Wheel shared `r j` tons. In detail, in 2020, Mr. Trash Wheel collected `r i` sport balls. Also, cigarette butt was a common pollution item in the port. Each bin collected `r g` cigarette butts on average, and a total of `r as.character(h)` cigarette butts were collected during the period.
+The Mr. Trash Wheel and the Professional Trash Wheel are two trash wheels used to clear trash and debris from the Inner Harbor of Baltimore, Maryland. These two datasets describe the amount and type of garbage collected by bins and dates. The dataset includes `r a` observations, including `r c` for the Mr. Trash Wheel and `r b` for the Professional Trash Wheel, with each observation representing a collected bin. The `r d` column variables include the weight, volume, and type of waste, as well as estimates of households using incineration to generate electricity such as `weight_tons`, `volume_cubic_yards`, `plastic_bottles`, `cigarette_butts` et al. From May 2014 to July 2022, the two Trash Wheels collected a total of `r e` tons of garbage, of which Mr. Trash Wheel dominated with `r f` tons, and Professor Trash Wheel shared `r j` tons. In detail, in 2020, Mr. Trash Wheel collected `r i` sport balls. Also, cigarette butt was a common pollution item in the port. Each bin collected `r g` cigarette butts on average, and a total of `r as.character(h)` cigarette butts were collected during the period.
 
 # Problem 3 Solution
 
